@@ -14,6 +14,9 @@ handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 
 app = Flask(__name__)
 
+@app.route('/')
+def index():
+    return "you call index()"
 
 @app.route("/callback", methods=["POST"])
 def callback():
@@ -25,18 +28,19 @@ def callback():
     app.logger.info("Request body: " + body)
 
     try:
-# signature と body を比較することで、リクエストがLINEから送信されたものであることを検証
+        # signature と body を比較することで、リクエストがLINEから送信されたものであることを検証
         handler.handle(body, signature)
     except InvalidSignatureError:
-    # クライアントからのリクエストに誤りがあったことを示すエラーを返す
+        # クライアントからのリクエストに誤りがあったことを示すエラーを返す
         abort(400)
 
-
     return "OK"
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=event.message.text))
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
